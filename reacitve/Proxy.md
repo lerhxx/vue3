@@ -22,7 +22,7 @@ console.log(proxy.test) // 5
 
 _Proxy_ 自身没有任何属性，如果 _handler_ 是空的，所有操作会直接转发到 _target_。
 
-_handler_ 参数
+### _handler_ 参数
 
 | Internal Method         | Handler Method             | Triggers when…                                               |
 | :---------------------- | :------------------------- | :----------------------------------------------------------- |
@@ -39,6 +39,22 @@ _handler_ 参数
 | `[[DefineOwnProperty]]` | `defineProperty`           | [Object.defineProperty](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty), [Object.defineProperties](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperties) |
 | `[[GetOwnProperty]]`    | `getOwnPropertyDescriptor` | [Object.getOwnPropertyDescriptor](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptor), `for..in`, `Object.keys/values/entries` |
 | `[[OwnPropertyKeys]]`   | `ownKeys`                  | [Object.getOwnPropertyNames](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyNames), [Object.getOwnPropertySymbols](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertySymbols), `for..in`, `Object.keys/values/entries` |
+
+##### get
+
+```javascript
+get(target, property, receiver)
+```
+
+* receiver: 一般为 proxy 本身
+
+##### set
+
+```javascript
+set(targer, property, value, receiver)
+```
+
+设置成功应该返回 `true`，失败返回  `false`。如果没有返回任何 falsy 值，会触发 `TypeError`。
 
 
 
