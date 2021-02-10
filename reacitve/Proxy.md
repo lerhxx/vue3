@@ -46,7 +46,7 @@ _Proxy_ 自身没有任何属性，如果 _handler_ 是空的，所有操作会�
 get(target, property, receiver)
 ```
 
-* receiver: 一般为 proxy 本身
+* receiver: 指向正确的  `this` ， 一般为 proxy 本身
 
 ##### set
 
