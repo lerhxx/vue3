@@ -55,7 +55,21 @@ console.log(plusOne) // ComputedRefImpl{...}
 
 缓存借助了一个私有属性 _dirty，来控制是否需要重新计数 getter，并将结果保存在另一个私有属性 _value 中。
 
-_dirty 初始值为 true，第一次访问 .value 时，会计算 getter 赋值给 _value，并将 _dirty 设置为 false。在依赖更新之前，再次读取 .value 都会直接返回 _value，并重新收集依赖。
+_dirty 初始值为 true，
+
+访问 .value 时，
+
+* 如果_dirty 为 true
+  * 计算 getter 并赋值给  _value
+  * 将 _dirty 设置为 false；
+* 触发 track ，computed 作为依赖被收集。
+
+当 computed 的依赖更新触发 trigger，执行 computed 的 scheduler。scheduler 中，只有当  _dirty 为 `false` 时，会负责两件事：
+
+* 将 _dirty 置为 `true`
+* 触发 trigger，更新 computed 的被依赖项
+
+在依赖更新之前，再次读取 .value 都会直接返回 _value，并重新收集依赖。
 
 
 
