@@ -20,7 +20,7 @@ function createReactiveEffect<T = any>(
     
     // 如果 effectStac 已经包含当前 effect 则不做处理
     if (!effectStack.includes(effect)) {
-      // 清楚 effect 的依赖
+      // 清除 effect 的依赖
       cleanup(effect)
       try {
         // 允许收集依赖
@@ -51,6 +51,7 @@ function createReactiveEffect<T = any>(
 stop 函数
 
 ```javascript
+// 使用地方：1）显示调用 watch、watchEffect 的返回值以停止监听 2）卸载组件
 export function stop(effect: ReactiveEffect) {
   if (effect.active) {
     cleanup(effect)
@@ -66,20 +67,25 @@ export function stop(effect: ReactiveEffect) {
 
 ```javascript
 export function track(target: object, type: TrackOpTypes, key: unknown) {
+  // 不允许收集依赖或者不存在 activeEffect 时直接返回
   if (!shouldTrack || activeEffect === undefined) {
     return
   }
+  // targetMap 依赖管理中心，存放所有依赖
   let depsMap = targetMap.get(target)
   if (!depsMap) {
     targetMap.set(target, (depsMap = new Map()))
   }
+  // 收集被依赖函项的 effect，当 key 值变化时，触发被依赖项的 effect.scheduler 或者 effect
   let dep = depsMap.get(key)
   if (!dep) {
     depsMap.set(key, (dep = new Set()))
   }
   if (!dep.has(activeEffect)) {
     dep.add(activeEffect)
+    // deps 存放依赖项的 effect Set，当调用 activeEffect 时，入 effectStack 栈前先清除依赖
     activeEffect.deps.push(dep)
+    // 仅用于调试
     if (__DEV__ && activeEffect.options.onTrack) {
       activeEffect.options.onTrack({
         effect: activeEffect,
@@ -89,6 +95,13 @@ export function track(target: object, type: TrackOpTypes, key: unknown) {
       })
     }
   }
+}
+
+// 会触发 track 的类型
+export const enum TrackOpTypes {
+  GET = 'get',
+  HAS = 'has',
+  ITERATE = 'iterate'
 }
 ```
 
@@ -168,6 +181,7 @@ export function trigger(
   }
 
   const run = (effect: ReactiveEffect) => {
+    // 仅用于调试
     if (__DEV__ && effect.options.onTrigger) {
       effect.options.onTrigger({
         effect,
@@ -187,6 +201,14 @@ export function trigger(
   }
 
   effects.forEach(run)
+}
+
+// 会触发 trigger 的类型
+export const enum TriggerOpTypes {
+  SET = 'set',
+  ADD = 'add',
+  DELETE = 'delete',
+  CLEAR = 'clear'
 }
 ```
 
