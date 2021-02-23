@@ -1,5 +1,3 @@
-
-
 # effect
 
 effect 是整个响应式系统的核心，主要负责收集依赖、更新依赖。
@@ -138,8 +136,10 @@ export function trigger(
   if (type === TriggerOpTypes.CLEAR) {
     // collection being cleared
     // trigger all effects for target
+    // 清空 collection（Set、WeakSet、Map、WeakMap），触发 target 所有的 effect
     depsMap.forEach(add)
   } else if (key === 'length' && isArray(target)) {
+    // 修改数组 length 时，触发依赖了数组length、被删除元素 的 effect
     depsMap.forEach((dep, key) => {
       if (key === 'length' || key >= (newValue as number)) {
         add(dep)
@@ -193,6 +193,7 @@ export function trigger(
         oldTarget
       })
     }
+    // computed、watch、watchEffect 拥有 scheduler
     if (effect.options.scheduler) {
       effect.options.scheduler(effect)
     } else {
