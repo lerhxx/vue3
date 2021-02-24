@@ -2,6 +2,20 @@
 
 effect 是整个响应式系统的核心，主要负责收集依赖、更新依赖。
 
+### targetMap
+
+用来存放响应式状态与依赖它们的 effect 的对应关系。
+
+track 会将依赖关系添加到 targetMap。
+
+trigger 时会从这里作为入口，收集需要执行的 effect。
+
+```javascript
+const targetMap = new WeakMap<any, KeyToDepMap>()
+```
+
+
+
 ### effect 的创建
 
 ```javascript
@@ -18,7 +32,7 @@ function createReactiveEffect<T = any>(
     
     // 如果 effectStac 已经包含当前 effect 则不做处理
     if (!effectStack.includes(effect)) {
-      // 清除 effect 的依赖
+      // 将 effect 从依赖项的 dep 中清除
       cleanup(effect)
       try {
         // 允许收集依赖
@@ -39,7 +53,7 @@ function createReactiveEffect<T = any>(
   effect._isEffect = true
   effect.active = true
   effect.raw = fn
-  effect.deps = []
+  effect.deps = []      // 存放 effect 依赖想
   effect.options = options
   return effect
 }
@@ -50,6 +64,7 @@ stop 函数
 
 ```javascript
 // 使用地方：1）显示调用 watch、watchEffect 的返回值以停止监听 2）卸载组件
+// 因为 stop 只是将 effect.active 状态设置为 false，并没有将 effect 从它的依赖项的 dep 中清除（cleanup），所以当依赖项更新时，effect 会被收集并调用，不过 effect.active 为 false，会直接返回
 export function stop(effect: ReactiveEffect) {
   if (effect.active) {
     cleanup(effect)
@@ -60,6 +75,22 @@ export function stop(effect: ReactiveEffect) {
   }
 }
 ```
+
+cleanup 函数
+
+```javascript
+function cleanup(effect: ReactiveEffect) {
+  const { deps } = effect
+  if (deps.length) {
+    for (let i = 0; i < deps.length; i++) {
+      deps[i].delete(effect)
+    }
+    deps.length = 0
+  }
+}
+```
+
+
 
 ### track 收集依赖
 
