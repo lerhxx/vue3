@@ -54,5 +54,20 @@ function dowatch() {
 * 清除副作用，如何清除是由开发者定义的
 * 如果被侦听器挂载到组件，就从组件中卸载
 
+### 清除副作用
+
+```javascript
+watchEffect((onInvalidate) => {
+  const token = performAsyncOperation(id1.value, id2.value)
+  onInvalidate(() => {
+    // id 改变时 或 停止侦听时
+    // 取消之前的异步操作
+    token.cancel()
+  })
+})
+```
+
+
+
 
 
